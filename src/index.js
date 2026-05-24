@@ -69,12 +69,12 @@ ${existingList}
 - ...
 - ...
 السعر: ...
-الكلمات المفتاحية: ...`;
+الكلمات المفتاحية (كلمات قصيرة فقط، كل كلمة أقل من 20 حرفاً): ...`;
   return await askAI(prompt, "أنت مسوق خبير ومؤلف منتجات رقمية. مهمتك إنشاء منتج عالي الجودة يبيع.");
 }
 
 async function createGumroadProduct({ title, description, price, tags }) {
-  const tagArray = tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+  const tagArray = tags ? tags.split(",").map(t => t.trim().slice(0, 20)).filter(Boolean).slice(0, 5) : [];
   const body = JSON.stringify({
     access_token: GUMROAD_TOKEN,
     name: title,
@@ -142,7 +142,7 @@ async function run() {
   const title = lines.find(l => l.startsWith("العنوان:"))?.replace("العنوان:", "").trim() || "منتج رقمي";
   const description = lines.find(l => l.startsWith("الوصف:"))?.replace("الوصف:", "").trim() || "منتج رقمي مميز";
   const price = parseInt(lines.find(l => l.startsWith("السعر:"))?.replace("السعر:", "").trim()) || 5;
-  const tags = lines.find(l => l.startsWith("الكلمات المفتاحية:"))?.replace("الكلمات المفتاحية:", "").trim() || "";
+  const tags = content.split("\n").find(l => l.includes("الكلمات المفتاحية"))?.replace(/^.*الكلمات المفتاحية[^:]*:\s*/, "").trim() || "";
 
   const pointsStart = content.indexOf("النقاط الرئيسية:");
   const pointsEnd = content.indexOf("\nالسعر:");
