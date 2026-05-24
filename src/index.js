@@ -74,20 +74,22 @@ ${existingList}
 }
 
 async function createGumroadProduct({ title, description, price, tags }) {
-  const body = new URLSearchParams();
-  body.append("access_token", GUMROAD_TOKEN);
-  body.append("name", title);
-  body.append("description", description);
-  body.append("price", String(price * 100));
-  body.append("published", "true");
-  tags.split(",").map(t => t.trim()).filter(Boolean).forEach(t => body.append("tags[]", t));
+  const tagArray = tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [];
+  const body = JSON.stringify({
+    access_token: GUMROAD_TOKEN,
+    name: title,
+    description: description,
+    price: price * 100,
+    published: true,
+    ...(tagArray.length > 0 && { tags: tagArray }),
+  });
 
   const res = await fetch(GUMROAD_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/json",
     },
-    body: body.toString(),
+    body: body,
   });
   const responseText = await res.text();
   let data;
