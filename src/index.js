@@ -38,6 +38,7 @@ async function askAI(prompt) {
 
 async function createGumroadProduct({ title, description, price }) {
   const body = new URLSearchParams();
+  body.append("access_token", GUMROAD_TOKEN);
   body.append("name", title);
   body.append("description", description);
   body.append("price", String(price * 100));
@@ -46,7 +47,6 @@ async function createGumroadProduct({ title, description, price }) {
   const res = await fetch(GUMROAD_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${GUMROAD_TOKEN}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: body.toString(),

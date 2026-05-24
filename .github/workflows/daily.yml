@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   create-product:
@@ -13,6 +15,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: تحقق من المتغيرات
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then echo "❌ GROQ_API_KEY غير موجود"; else echo "✅ GROQ_API_KEY موجود"; fi
+          if [ -z "$GUMROAD_TOKEN" ]; then echo "❌ GUMROAD_TOKEN غير موجود"; else echo "✅ GUMROAD_TOKEN موجود"; fi
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GUMROAD_TOKEN: ${{ secrets.GUMROAD_TOKEN }}
       - run: node src/index.js
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
