@@ -80,7 +80,7 @@ async function createGumroadProduct({ title, description, price, tags }) {
   body.append("description", description);
   body.append("price", String(price * 100));
   body.append("published", "true");
-  body.append("tags", tags || "");
+  tags.split(",").map(t => t.trim()).filter(Boolean).forEach(t => body.append("tags[]", t));
 
   const res = await fetch(GUMROAD_URL, {
     method: "POST",
