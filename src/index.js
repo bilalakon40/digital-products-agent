@@ -89,21 +89,38 @@ async function createGumroadProduct({ title, description, price, tags }) {
     },
     body: body.toString(),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gumroad API error ${res.status}: ${err}`);
+  const responseText = await res.text();
+  let data;
+  try { data = JSON.parse(responseText); } catch { data = { raw: responseText }; }
+  if (!res.ok || data.success === false) {
+    throw new Error(`Gumroad API error ${res.status}: ${data.message || responseText}`);
   }
-  return res.json();
+  return data;
 }
 
 async function getExistingProducts() {
   try {
     const res = await fetch(`${GUMROAD_URL}?access_token=${GUMROAD_TOKEN}`);
-    if (!res.ok) return [];
-    const data = await res.json();
+    const text = await res.text();
+    const data = JSON.parse(text);
     return (data.products || []).map(p => p.name);
-  } catch {
+  } catch (e) {
+    console.log("⚠️ ما تمش جلب المنتجات الموجودة:", e.message);
     return [];
+  }
+}
+
+async function publishProduct(title, description, price, tags) {
+  console.log(`🚀 جاري نشر المنتج "${title}" على Gumroad...`);
+  const result = await createGumroadProduct({ title, description, price, tags });
+  const product = result.product || result;
+  const url = product.short_url || product.permalink || (product.id ? `https://bybilal.gumroad.com/l/${product.id}` : "الرابط غير متاح");
+  console.log(`✅ تم النشر بنجاح!`);
+  console.log(`🔗 رابط المنتج: ${url}`);
+  console.log(`💰 السعر: $${price}`);
+  console.log(`🏷️ الكلمات المفتاحية: ${tags}`);
+  if (!result.product) {
+    console.log("📋 الرد الكامل من Gumroad:", JSON.stringify(result, null, 2));
   }
 }
 
@@ -135,21 +152,12 @@ async function run() {
       .filter(Boolean);
     if (points.length > 0) {
       const fullDesc = description + "\n\n" + points.map(p => "• " + p).join("\n");
-      console.log(`🚀 جاري نشر المنتج "${title}" على Gumroad...`);
-      const result = await createGumroadProduct({ title, description: fullDesc, price, tags });
-      console.log(`✅ تم النشر بنجاح!`);
-      console.log(`🔗 رابط المنتج: ${result.product.short_url}`);
-      console.log(`💰 السعر: $${price}`);
-      console.log(`🏷️ الكلمات المفتاحية: ${tags}`);
+      await publishProduct(title, fullDesc, price, tags);
       return;
     }
   }
 
-  console.log(`🚀 جاري نشر المنتج "${title}" على Gumroad...`);
-  const result = await createGumroadProduct({ title, description, price, tags });
-  console.log(`✅ تم النشر بنجاح!`);
-  console.log(`🔗 رابط المنتج: ${result.product.short_url}`);
-  console.log(`💰 السعر: $${price}`);
+  await publishProduct(title, description, price, tags);
 }
 
 run().catch((err) => {
