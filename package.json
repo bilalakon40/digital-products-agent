@@ -1,0 +1,9 @@
+{
+  "name": "digital-products-agent",
+  "version": "1.0.0",
+  "description": "AI agent that creates and sells digital products on Gumroad automatically",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}
